@@ -41,3 +41,122 @@
 **观点**：碳排放实际上是发达国家通过环保的名义变相掠夺发展中国家的工具，而中国在新能源方面倒是加入了发达国家的行列，尤其是光伏的硅料、硅片，占据了全球超90%的供应，电池片和组件也是遥遥领先的。
 
 **背景**：随着巴黎气候协定的圆满落幕，《联合国气候变化框架公约》196个缔约方中有187个提交了本国2020年生效的抗击气候变化的承诺方案，将每五年上调一次。其余国家必须提交承诺方案才能成为协定的缔约方。每个国家都要承诺采取必要措施，并可利用市场机制(如排放量交易)来实现目标。在排放量占全球55%的至少55个缔约方批准之后，新协定正式生效。巴黎气候大会主办方声称，巴黎气候协定将于2016年4月22日即世界地球日这一天在纽约联合国总部签署。
+
+
+
+#### [IDM模型](https://zhuanlan.zhihu.com/p/428970501)
+
+**优点**：Intelligent Driver Model (IDM)模型的参数数量少、意义明确且与经验符合很好，并且能用统一的模型描述从自由流到完全拥堵流的不同状态。
+
+**缺点**：缺乏随机项，也就是输入一定时，输出是确定的，这与现实中车辆行为的随机性有所差异。例如在交通流模拟中我们可以观察到相同参数的两辆车从路口停止线前同时起步后并行向前行驶，并在较长的时间内保持同样的行驶状态，与实际车辆驾驶行为不符。
+
+**Acceleration of ego-vehicle**:
+$$
+\partial v = a[1-(\frac{v}{v_0})^\delta-(\frac{s^*(v,\Delta v)}{s})^2]
+$$
+其中$a$为自车的最大加速度， $v$ 为自车当前的车速， $v_0$为自车的期望车速， $\delta$ 为加速度指数， $\Delta v$ 为自车与前车的速度差， $s$为当前自车与前车的车距，$s^*(v,\Delta v)$为期望跟车距离。
+
+加速度方程中主要包含两个部分，$(\frac{v}{v_0})^\delta$ 用来衡量当前车速与期望车速的差距， 促进车辆加速，$(\frac{s^*(v,\Delta v)}{s})^2$ 则用来衡量当前车距与期望车距的差距，以促进车辆制动。
+
+期望车距由下式得到：
+$$
+s^*(v,\Delta V)=s_0+\max (0,vT+\frac{v \Delta v}{2 \sqrt{ab}})
+$$
+其中$b$为舒适减速度，$s_0$是最小车距
+
+期望车距方程含有一个平衡项$s_0+vT$ ，以及一个动力项$\frac{v \Delta v}{2 \sqrt{ab}}$，以实现智能的刹车策略。
+
+自车的加速度方程也可以分解成“自由流（freeroad）“和”交互（interaction）“两个部分。
+$$
+\frac{dv_i}{dt}=𝑎_{𝑓𝑟𝑒𝑒𝑟𝑜𝑎𝑑}+𝑎_{𝑖𝑛𝑡𝑒𝑟𝑎𝑐𝑡𝑖𝑜𝑛}
+$$
+
+$$
+𝑎_{𝑓𝑟𝑒𝑒𝑟𝑜𝑎𝑑}=a_i[1-(\frac{v}{v_0})^\delta]
+$$
+
+$$
+𝑎_{𝑖𝑛𝑡𝑒𝑟𝑎𝑐𝑡𝑖𝑜𝑛}=𝑎_𝑖 [-(\frac{s^*(v,\Delta v)}{s})^2]
+$$
+
+* **平衡流状态**
+
+![image-20230713151223358](https://raw.githubusercontent.com/BillChan226/Notebook/main/image/image-20230713151223358.png)
+
+![v2-b899ee0c9ec632c642aba83f1d827f92_720w](https://raw.githubusercontent.com/BillChan226/Notebook/main/image/v2-b899ee0c9ec632c642aba83f1d827f92_720w.webp)
+
+
+
+**速度/位置更新公式**
+
+![image-20230713150922843](https://raw.githubusercontent.com/BillChan226/Notebook/main/image/image-20230713150922843.png)
+
+**IDM流程**
+
+![image-20230713150940435](https://raw.githubusercontent.com/BillChan226/Notebook/main/image/image-20230713150940435.png)
+
+
+
+**Remark**:
+
++ 自车加速度是关于自车速度的严格递减函数。并且如果没有其他车辆或者障碍物的阻挡，车辆倾向于加速至期望车速 $v_0$;
++ 自车加速度是关于与前车或者障碍物的距离的递增函数。如果前车和障碍物在交互距离（视野范围）之外，则对自车不产生影响，可认为自车处于自由流状态;
++ 自车加速度是关于和前车相对车速的递增函数。结合第一点，意味着随着速度逐渐接近前车速度，自车加速度逐渐减小；
+
+
+
+### Localization
+
++ **GNSS**：获取经纬高信息（绝对）
+
++ **IMU**：获取加速度和角速度信息（相对）
+
++ **Encoder**：获取对象自身纵向速度信息（相对）
++ **Lidar**：获取描述附近几何结构的点云信息（绝对）
+
+传感器数据融合：[扩展卡尔曼滤波](https://zhuanlan.zhihu.com/p/522233263)
+
+通过卡尔曼滤波的方式，充分利用获取自各种传感器的有效位姿信息，摒弃无效位姿信息，输出对当前位姿最准确的估计
+
+一种主流的自动驾驶融合：
+
+定位的硬件与算法组合：IMU+GNSS+LIDAR
+
+**Inference**：
+
++ **Camera**：获取FOV内不含深度信息的图像
+
+
+
+### MPC Model
+
+
+
+
+
+### 08/02/2023 李文国 Planning
+
+#### **Ros Framework**
+
++ **Scenario**
+  + Lane_follow
+  + Bare_intersection
+  + Valet_parking
+  + Parking_and_go
++ **Stage**
++ **Task**
+  + Collision_checker
+  + Drive_path_chooser
+  + Conflict_check_decider
+
+
+
+#### **Planning**
+
+在frenet坐标系下构建s-l图，采用DP+QP的方式求解路径。DP过程采用五次多项式连接，考虑平滑性和安全性代价，得到粗解球出一个凸空间。QP用OSQP求解库优化出平滑路径。
+
+
+
+#### **Predicting**
+
+[ADC Trajectory](https://www.auto-testing.net/news/show-97978.html)
