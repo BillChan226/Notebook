@@ -26,7 +26,7 @@ A typical Image captioning framework:
 
 
 
-### Hallucination w.r.t. Visual Encoder
+### Hallucination via Visual Encoder
 
 + **Region-based**: 
   + **output**: identify and focus on specific regions in the image provided by a high-level object detector (e.g. Faster R-CNN object detector: ResNet-101, ResNeXt152)
@@ -39,3 +39,25 @@ A typical Image captioning framework:
   + **edge**: since patch-based encoders employ transformer backbone like ViT, which can inherently capture long-range dependencies and global context, which might give them an advantage over grid-based encoders that employs CNN backbone
 
 ![image-20231029195227208](https://raw.githubusercontent.com/BillChan226/Notebook/main/image/image-20231029195227208.png)
+
+
+
+### Hallucination via Decoder
+
+**decoding methods**
+
++ search-based: optimize for the language model log-probabilities;
++ sampling-based: draw the next token from a truncated distribution;
++ constrasting decoding: tokens only get high probability if **expert** consider them likely and **amateur** consider unlikely;
+
+**Contrastive Decoding**
+
+Considered a scenario involving two language models; one is a very large pre-trained model, termed the **expert**, and the other is a much smaller version of the same architecture, termed the **amateur**. Importantly, whereas these models **share some failure modes and undesirable behaviors**, the expert model clearly outperforms the amateur model in language model tasks. Thus we can exploit the contrast between the predictions of the expert and amateur to obtain an improved generated output.
+
+![image-20231030213730967](https://raw.githubusercontent.com/BillChan226/Notebook/main/image/image-20231030213730967.png)
+
+It is beneficial to prefer predictions to which only the expert model assigns a high probability, versus predictions to which both the expert and the amateur assign high probabilities. Intuitively, since the amateur model has a stronger propensity than the expert for problematic behaviors (e.g., repetitiveness in the case of text generation).
+
+**Auto-contrastive Decoding** (ACD): both the expert and the amateur are situated in the same model, and are deﬁned by two different layers of that model.
+
+![image-20231030232708339](/Users/zhaorunchen/Library/Application Support/typora-user-images/image-20231030232708339.png)
